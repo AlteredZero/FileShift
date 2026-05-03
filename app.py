@@ -34,7 +34,11 @@ def get_category(filepath):
     return "misc"
 
 def find_ffmpeg():
-    """Return ffmpeg executable path, or None if not found."""
+    if getattr(sys, "frozen", False):
+        bundled = os.path.join(sys._MEIPASS, "ffmpeg", "bin", "ffmpeg.exe")
+        if os.path.isfile(bundled):
+            return bundled
+
     p = shutil.which("ffmpeg")
     if p:
         return p
@@ -274,7 +278,7 @@ class FileShiftUi(QWidget):
         root_layout.addWidget(self.button_file)
 
         if not FFMPEG:
-            warn = QLabel("! ffmpeg not found. Some video/audio conversion will not work.\nInstall ffmpeg and ensure it is on your PATH.")
+            warn = QLabel("! ffmpeg not found; some video/audio conversion will be unavailable.")
             warn.setStyleSheet("color: orange;")
             warn.setWordWrap(True)
             root_layout.addWidget(warn)
@@ -515,10 +519,3 @@ class FileShiftUi(QWidget):
         if not self._cards:
             self.convert_all.setEnabled(False)
             self.download_all.setEnabled(False)
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = FileShiftUi()
-    window.show()
-    sys.exit(app.exec_())
